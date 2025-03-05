@@ -5,6 +5,7 @@ from models import EvaluationRequestSchema, EvaluationResponseSchema
 
 app = Flask(__name__)
 
+
 @app.route('/evaluate', methods=['POST'])
 def evaluate_tenant():
     schema = EvaluationRequestSchema()
@@ -22,9 +23,11 @@ def evaluate_tenant():
         'match_counts': results['match_counts']
     }))
 
+
 @app.route('/')
 def root():
     return jsonify({"message": "Welcome to the Tenant Screening Match Evaluator API"})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
