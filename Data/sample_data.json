@@ -1,0 +1,70 @@
+
+{
+  "tenant": {
+    "first_name": "Maria Isabel",
+    "last_name": "Rodriguez Garcia",
+    "dob": "1985-06-15",
+    "gender": "female",
+    "nationality": "Mexican",
+    "location": "Mexico City, Mexico"
+  },
+  "pipeline_data": {
+    "pipeline": [
+      {
+        "type": "refinitiv-blacklist",
+        "results": [
+          {
+            "id": 1,
+            "first_name": "Maria",
+            "last_name": "Rodriguez",
+            "dob": "1985-06-15",
+            "gender": "female",
+            "nationality": "Mexican",
+            "location": "Mexico City",
+            "risk_type": "Fraud"
+          },
+          {
+            "id": 2,
+            "first_name": "Maria Isabel",
+            "last_name": "Rodriguez Garcia",
+            "dob": "1985-06-15",
+            "gender": "female",
+            "nationality": "Mexican",
+            "location": "Guadalajara, Mexico",
+            "risk_type": "Financial Crime"
+          },
+          {
+            "id": 3,
+            "first_name": "Maria",
+            "last_name": "Rodriguez Sanchez",
+            "dob": "1986-06-15",
+            "gender": "female",
+            "nationality": "Mexican",
+            "location": "Mexico City",
+            "risk_type": "Fraud"
+          },
+          {
+            "id": 4,
+            "first_name": "Isabel",
+            "last_name": "Garcia",
+            "dob": "1985-06-15",
+            "gender": "female",
+            "nationality": "Mexican",
+            "location": "Mexico City",
+            "risk_type": "Fraud"
+          },
+          {
+            "id": 5,
+            "first_name": "Mario",
+            "last_name": "Rodriguez",
+            "dob": "1975-03-22",
+            "gender": "male",
+            "nationality": "Mexican",
+            "location": "Monterrey, Mexico",
+            "risk_type": "Financial Crime"
+          }
+        ]
+      }
+    ]
+  }
+}
