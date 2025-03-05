@@ -2,27 +2,6 @@
 
 A Flask-based API for evaluating potential matches in tenant screening processes. This service analyzes tenant information against screening results to determine the relevance and risk level of potential matches.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-  - [Using pip](#using-pip)
-  - [From source](#from-source)
-  - [Using Docker](#using-docker)
-- [Usage](#usage)
-  - [API Endpoints](#api-endpoints)
-  - [Example Request](#example-request)
-  - [Example Response](#example-response)
-- [Development](#development)
-  - [Project Structure](#project-structure)
-  - [Running Tests](#running-tests)
-  - [Code Coverage](#code-coverage)
-- [Packaging](#packaging)
-- [Configuration](#configuration)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
-
 ## Overview
 
 The Tenant Screening Match Evaluator is designed to help property managers and screening services evaluate potential tenant matches against various databases. It uses a sophisticated algorithm to calculate relevance scores based on multiple factors including name similarity, date of birth, location, nationality, and gender.
