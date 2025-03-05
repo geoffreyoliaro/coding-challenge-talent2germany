@@ -98,24 +98,29 @@ set FLASK_APP=challenge/app.py
 set FLASK_ENV=development
 ```
 
-
-## USAGE
-
-The API will be available at `http://localhost:5000`.
-
 ### API Endpoints
 
 - `POST /evaluate`: Evaluate a tenant against pipeline data
   - Request body: JSON object containing `tenant` and `pipeline_data`
   - Response: Evaluation results
 
-### Example Usage
+  Note: When using Postman or any other API client, make sure to set the `Content-Type` header to `application/json`.
 
-```python
-import requests
+### Example Usage with Postman
 
-url = "http://localhost:5000/evaluate"
-data = {
+1. Open Postman and create a new request.
+2. Set the request type to POST.
+3. Enter the URL: `http://localhost:5000/evaluate`
+4. In the Headers tab, add a new header:
+   - Key: `Content-Type`
+   - Value: `application/json`
+5. In the Body tab:
+   - Select "raw"
+   - Choose "JSON" from the dropdown menu
+   - Enter the following JSON:
+
+```json
+{
     "tenant": {
         "first_name": "Juan Carlos",
         "last_name": "Perez Gonzalez",
@@ -144,7 +149,6 @@ data = {
         ]
     }
 }
-
 response = requests.post(url, json=data)
 print(response.json())
 
