@@ -120,4 +120,53 @@ set FLASK_ENV=development
 ```
 
 
+## USAGE
+
+The API will be available at `http://localhost:5000`.
+
+### API Endpoints
+
+- `POST /evaluate`: Evaluate a tenant against pipeline data
+  - Request body: JSON object containing `tenant` and `pipeline_data`
+  - Response: Evaluation results
+
+### Example Usage
+
+```python
+import requests
+
+url = "http://localhost:5000/evaluate"
+data = {
+    "tenant": {
+        "first_name": "Juan Carlos",
+        "last_name": "Perez Gonzalez",
+        "dob": "1990-05-15",
+        "gender": "male",
+        "nationality": "Mexican",
+        "location": "Bogota, Colombia"
+    },
+    "pipeline_data": {
+        "pipeline": [
+            {
+                "type": "refinitiv-blacklist",
+                "results": [
+                    {
+                        "id": 1,
+                        "first_name": "Juan Carlos",
+                        "last_name": "Perez Gonzalez",
+                        "dob": "1990-05-15",
+                        "gender": "male",
+                        "nationality": "Mexican",
+                        "location": "Bogota, Colombia",
+                        "risk_type": "Low"
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+response = requests.post(url, json=data)
+print(response.json())
+
 
