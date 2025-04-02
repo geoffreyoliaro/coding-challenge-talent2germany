@@ -24,7 +24,7 @@ template_dir = r"C:\Users\user\OneDrive\Desktop\test-coding-challenge\coding-cha
 
 
 # app = Flask(__name__, template_folder=template_dir)
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, template_folder='template')
 # app = Flask(__name__, template_folder=TEMPLATE_DIR)
 app.secret_key = 'tenant-screening-secret-key'  # Required for session
 
