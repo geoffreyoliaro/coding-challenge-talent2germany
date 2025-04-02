@@ -19,10 +19,13 @@ class CustomJSONEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-# Create Flask app with proper template folder configuration
-# Use a relative path that will work both locally and on Render
-app = Flask(__name__,
-            template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'))
+# Create Flask app with explicit template folder
+template_dir = r"C:\Users\user\OneDrive\Desktop\test-coding-challenge\coding-challenge-talent2germany\templates"
+
+
+# app = Flask(__name__, template_folder=template_dir)
+app = Flask(__name__, template_folder='templates')
+# app = Flask(__name__, template_folder=TEMPLATE_DIR)
 app.secret_key = 'tenant-screening-secret-key'  # Required for session
 
 # Store results temporarily in memory (in a real app, use a database)
@@ -281,8 +284,6 @@ def sample_data():
     return jsonify(sample)
 
 
-# For Render deployment
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
 
