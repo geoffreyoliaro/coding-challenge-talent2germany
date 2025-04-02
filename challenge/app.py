@@ -20,7 +20,7 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 
 # Create Flask app with explicit template folder
-template_dir = r"C:\Users\user\OneDrive\Desktop\test-coding-challenge\coding-challenge-talent2germany\templates"
+#template_dir = r"C:\Users\user\OneDrive\Desktop\test-coding-challenge\coding-challenge-talent2germany\templates"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
