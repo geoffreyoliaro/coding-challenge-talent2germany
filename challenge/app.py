@@ -21,7 +21,11 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 # Create Flask app with explicit template folder
 template_dir = r"C:\Users\user\OneDrive\Desktop\test-coding-challenge\coding-challenge-talent2germany\templates"
-app = Flask(__name__, template_folder=template_dir)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+
+app = Flask(__name__, template_folder=TEMPLATE_DIR)
 app.secret_key = 'tenant-screening-secret-key'  # Required for session
 
 # Store results temporarily in memory (in a real app, use a database)
@@ -281,7 +285,5 @@ def sample_data():
 
 
 if __name__ == '__main__':
-    app.debug = False
-
-    app.run()
+    app.run(debug=True)
 
