@@ -25,7 +25,8 @@ class CustomJSONEncoder(json.JSONEncoder):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 
-app = Flask(__name__, template_folder=TEMPLATE_DIR)
+app = Flask(__name__, template_folder="templates")
+# app = Flask(__name__, template_folder=TEMPLATE_DIR)
 app.secret_key = 'tenant-screening-secret-key'  # Required for session
 
 # Store results temporarily in memory (in a real app, use a database)
