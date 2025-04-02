@@ -1,0 +1,14 @@
+{
+    "builds": [
+        {
+            "src": "challenge/app.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "challenge/app.py"
+        }
+    ]
+}

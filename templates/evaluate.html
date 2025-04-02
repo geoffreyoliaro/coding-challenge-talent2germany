@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Screening Visualization</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        pre {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            overflow: auto;
+            max-height: 400px;
+        }
+
+        .json-editor {
+            font-family: monospace;
+            min-height: 400px;
+            resize: vertical;
+        }
+
+        .match-high {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+
+        .match-medium {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+
+        .match-low {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        .match-none {
+            background-color: rgba(108, 117, 125, 0.1);
+        }
+
+        .badge-high {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .badge-medium {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .badge-low {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .badge-none {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .score-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .score-medium {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .score-low {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+
+        .score-none {
+            color: #6c757d;
+            font-weight: bold;
+        }
+
+        .progress {
+            height: 0.5rem;
+        }
+
+        .match-details {
+            display: none;
+        }
+
+        .match-details.active {
+            display: block;
+        }
+
+        .nav-tabs .nav-link {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+                <span class="fs-4">Tenant Screening Visualization</span>
+            </a>
+        </header>
+
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if not results %}active{% endif %}" id="input-tab" data-bs-toggle="tab" data-bs-target="#input" type="button" role="tab" aria-controls="input" aria-selected="{% if not results %}true{% else %}false{% endif %}">Input JSON</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if results %}active{% endif %}" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab" aria-controls="results" aria-selected="{% if results %}true{% else %}false{% endif %}" {% if not results %}disabled{% endif %}>Results</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade {% if not results %}show active{% endif %}" id="input" role="tabpanel" aria-labelledby="input-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">JSON Input</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="/evaluate">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-end mb-2">
+                                    <button type="button" class="btn btn-outline-secondary me-2" id="loadSample">Load Sample</button>
+                                    <button type="button" class="btn btn-outline-secondary" id="validateJson">Validate JSON</button>
+                                </div>
+                                <textarea class="form-control json-editor" id="jsonInput" name="json_input" placeholder="Paste your JSON here...">{{ json_input }}</textarea>
+                            </div>
+                            <div id="validationResult"></div>
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" id="resetForm">Reset</button>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade {% if results %}show active{% endif %}" id="results" role="tabpanel" aria-labelledby="results-tab">
+                {% if results %}
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Evaluation Results</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Match Counts</h5>
+                                        <div class="mb-4">
+                                            {% for category, count in results.match_counts.items() %}
+                                            {% set category_lower = category.lower() %}
+                                            {% set percentage = (count / results.evaluated_matches|length * 100) if results.evaluated_matches|length > 0 else 0 %}
+                                            <div class="mb-2">
+                                                <div class="d-flex justify-content-between">
+                                                    <span>{{ category.replace('_', ' ').title() }}</span>
+                                                    <span>{{ count }} ({{ percentage|int }}%)</span>
+                                                </div>
+                                                <div class="progress">
+                                                    {% if category == 'HIGH_RELEVANCE' %}
+                                                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ percentage }}%" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    {% elif category == 'MEDIUM_RELEVANCE' %}
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: {{ percentage }}%" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    {% elif category == 'LOW_RELEVANCE' %}
+                                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ percentage }}%" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    {% else %}
+                                                    <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ percentage }}%" aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                            <div class="mt-3 pt-2 border-top">
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="fw-bold">Total Matches</span>
+                                                    <span>{{ results.evaluated_matches|length }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Tenant Information</h5>
+                                        <table class="table table-sm">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <td>{{ results.tenant_info.first_name }} {{ results.tenant_info.last_name }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Date of Birth</th>
+                                                    <td>{{ results.tenant_info.dob }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Gender</th>
+                                                    <td>{{ results.tenant_info.gender or 'N/A' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Nationality</th>
+                                                    <td>{{ results.tenant_info.nationality or 'N/A' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Location</th>
+                                                    <td>{{ results.tenant_info.location or 'N/A' }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Match Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>DOB</th>
+                                        <th>Location</th>
+                                        <th>Risk</th>
+                                        <th>Score</th>
+                                        <th>Category</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for match in results.evaluated_matches %}
+                                    {% set category_class = 'match-high' if match.match_category == 'HIGH_RELEVANCE' else
+                                                           ('match-medium' if match.match_category == 'MEDIUM_RELEVANCE' else
+                                                           ('match-low' if match.match_category == 'LOW_RELEVANCE' else 'match-none')) %}
+                                    {% set badge_class = 'badge-high' if match.match_category == 'HIGH_RELEVANCE' else
+                                                       ('badge-medium' if match.match_category == 'MEDIUM_RELEVANCE' else
+                                                       ('badge-low' if match.match_category == 'LOW_RELEVANCE' else 'badge-none')) %}
+                                    {% set score_class = 'score-high' if match.relevance_score >= 0.8 else
+                                                       ('score-medium' if match.relevance_score >= 0.6 else
+                                                       ('score-low' if match.relevance_score >= 0.4 else 'score-none')) %}
+                                    <tr class="{{ category_class }}">
+                                        <td>{{ match.first_name }} {{ match.last_name }}</td>
+                                        <td>{{ match.dob }}</td>
+                                        <td>{{ match.location or 'N/A' }}</td>
+                                        <td>
+                                            {% if match.risk_type %}
+                                            {% if match.risk_type|lower == 'high' %}
+                                            <span class="badge bg-danger">High Risk</span>
+                                            {% elif match.risk_type|lower == 'medium' %}
+                                            <span class="badge bg-warning text-dark">Medium Risk</span>
+                                            {% elif match.risk_type|lower == 'low' %}
+                                            <span class="badge bg-success">Low Risk</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ match.risk_type }}</span>
+                                            {% endif %}
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                        </td>
+                                        <td class="{{ score_class }}">{{ (match.relevance_score * 100)|int }}%</td>
+                                        <td><span class="badge {{ badge_class }}">{{ match.match_label }}</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary view-details" data-match-id="{{ match.id }}">View</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Match Details Modal -->
+                <div class="modal fade" id="matchDetailsModal" tabindex="-1" aria-labelledby="matchDetailsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="matchDetailsModalLabel">Match Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% for match in results.evaluated_matches %}
+                                {% set category_class = 'match-high' if match.match_category == 'HIGH_RELEVANCE' else
+                                                       ('match-medium' if match.match_category == 'MEDIUM_RELEVANCE' else
+                                                       ('match-low' if match.match_category == 'LOW_RELEVANCE' else 'match-none')) %}
+                                {% set badge_class = 'badge-high' if match.match_category == 'HIGH_RELEVANCE' else
+                                                   ('badge-medium' if match.match_category == 'MEDIUM_RELEVANCE' else
+                                                   ('badge-low' if match.match_category == 'LOW_RELEVANCE' else 'badge-none')) %}
+                                {% set score_class = 'score-high' if match.relevance_score >= 0.8 else
+                                                   ('score-medium' if match.relevance_score >= 0.6 else
+                                                   ('score-low' if match.relevance_score >= 0.4 else 'score-none')) %}
+                                <div class="match-details" id="match-details-{{ match.id }}">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h5>Match Information</h5>
+                                            <table class="table table-sm">
+                                                <tbody>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <td>{{ match.first_name }} {{ match.last_name }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Date of Birth</th>
+                                                        <td>{{ match.dob }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Gender</th>
+                                                        <td>{{ match.gender or 'N/A' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Nationality</th>
+                                                        <td>{{ match.nationality or 'N/A' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Location</th>
+                                                        <td>{{ match.location or 'N/A' }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Risk Type</th>
+                                                        <td>{{ match.risk_type or 'N/A' }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>Evaluation Results</h5>
+                                            <table class="table table-sm">
+                                                <tbody>
+                                                    <tr>
+                                                        <th>Relevance Score</th>
+                                                        <td class="{{ score_class }}">{{ (match.relevance_score * 100)|int }}%</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Category</th>
+                                                        <td><span class="badge {{ badge_class }}">{{ match.match_label }}</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <h5 class="text-success"><i class="bi bi-check-circle"></i> Match Reasons</h5>
+                                            {% if match.match_reasons %}
+                                            <ul>
+                                                {% for reason in match.match_reasons %}
+                                                <li>{{ reason }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                            {% else %}
+                                            <p class="text-muted">No match reasons found</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5 class="text-danger"><i class="bi bi-x-circle"></i> Mismatch Reasons</h5>
+                                            {% if match.mismatch_reasons %}
+                                            <ul>
+                                                {% for reason in match.mismatch_reasons %}
+                                                <li>{{ reason }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                            {% else %}
+                                            <p class="text-muted">No mismatch reasons found</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Raw JSON Response</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="copyJson">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <pre id="jsonOutput">{{ json_output }}</pre>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsonInput = document.getElementById('jsonInput');
+            const validateJsonBtn = document.getElementById('validateJson');
+            const loadSampleBtn = document.getElementById('loadSample');
+            const resetFormBtn = document.getElementById('resetForm');
+            const validationResult = document.getElementById('validationResult');
+            const copyJsonBtn = document.getElementById('copyJson');
+            const jsonOutput = document.getElementById('jsonOutput');
+
+            // Validate JSON
+            validateJsonBtn?.addEventListener('click', function() {
+                try {
+                    JSON.parse(jsonInput.value);
+                    validationResult.innerHTML = `
+                        <div class="alert alert-success mt-3" role="alert">
+                            <i class="bi bi-check-circle"></i> JSON is valid
+                        </div>
+                    `;
+                } catch (error) {
+                    validationResult.innerHTML = `
+                        <div class="alert alert-danger mt-3" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i> Invalid JSON: ${error.message}
+                        </div>
+                    `;
+                }
+            });
+
+            // Load sample data
+            loadSampleBtn?.addEventListener('click', function() {
+                fetch('/sample-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        jsonInput.value = JSON.stringify(data, null, 2);
+                        validationResult.innerHTML = `
+                            <div class="alert alert-success mt-3" role="alert">
+                                <i class="bi bi-check-circle"></i> Sample data loaded
+                            </div>
+                        `;
+                    });
+            });
+
+            // Reset form
+            resetFormBtn?.addEventListener('click', function() {
+                jsonInput.value = '';
+                validationResult.innerHTML = '';
+            });
+
+            // Copy JSON
+            copyJsonBtn?.addEventListener('click', function() {
+                if (jsonOutput) {
+                    navigator.clipboard.writeText(jsonOutput.textContent)
+                        .then(() => {
+                            copyJsonBtn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+                            setTimeout(() => {
+                                copyJsonBtn.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy: ', err);
+                        });
+                }
+            });
+
+            // View match details
+            const viewDetailsButtons = document.querySelectorAll('.view-details');
+            const matchDetailsModal = new bootstrap.Modal(document.getElementById('matchDetailsModal'));
+
+            viewDetailsButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const matchId = this.getAttribute('data-match-id');
+
+                    // Hide all match details
+                    document.querySelectorAll('.match-details').forEach(el => {
+                        el.classList.remove('active');
+                    });
+
+                    // Show selected match details
+                    const matchDetails = document.getElementById(`match-details-${matchId}`);
+                    if (matchDetails) {
+                        matchDetails.classList.add('active');
+                        matchDetailsModal.show();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
