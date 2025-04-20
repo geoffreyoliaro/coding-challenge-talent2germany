@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Screening Input</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        pre {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            overflow: auto;
+            max-height: 400px;
+        }
+
+        .json-editor {
+            font-family: monospace;
+            min-height: 400px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+                <span class="fs-4">Tenant Screening Visualization</span>
+            </a>
+        </header>
+
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">JSON Input</h5>
+                <p class="card-text text-muted">Paste your tenant screening JSON data below or load a sample</p>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/evaluate">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-end mb-2">
+                            <button type="button" class="btn btn-outline-secondary me-2" id="loadSample">Load Sample</button>
+                            <button type="button" class="btn btn-outline-secondary" id="validateJson">Validate JSON</button>
+                        </div>
+                        <textarea class="form-control json-editor" id="jsonInput" name="json_input" placeholder="Paste your JSON here...">{{ json_input }}</textarea>
+                    </div>
+                    <div id="validationResult"></div>
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" id="resetForm">Reset</button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsonInput = document.getElementById('jsonInput');
+            const validateJsonBtn = document.getElementById('validateJson');
+            const loadSampleBtn = document.getElementById('loadSample');
+            const resetFormBtn = document.getElementById('resetForm');
+            const validationResult = document.getElementById('validationResult');
+
+            // Validate JSON
+            validateJsonBtn?.addEventListener('click', function() {
+                try {
+                    JSON.parse(jsonInput.value);
+                    validationResult.innerHTML = `
+                        <div class="alert alert-success mt-3" role="alert">
+                            <i class="bi bi-check-circle"></i> JSON is valid
+                        </div>
+                    `;
+                } catch (error) {
+                    validationResult.innerHTML = `
+                        <div class="alert alert-danger mt-3" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i> Invalid JSON: ${error.message}
+                        </div>
+                    `;
+                }
+            });
+
+            // Load sample data
+            loadSampleBtn?.addEventListener('click', function() {
+                fetch('/sample-data')
+                    .then(response => response.json())
+                    .then(data => {
+                        jsonInput.value = JSON.stringify(data, null, 2);
+                        validationResult.innerHTML = `
+                            <div class="alert alert-success mt-3" role="alert">
+                                <i class="bi bi-check-circle"></i> Sample data loaded
+                            </div>
+                        `;
+                    });
+            });
+
+            // Reset form
+            resetFormBtn?.addEventListener('click', function() {
+                jsonInput.value = '';
+                validationResult.innerHTML = '';
+            });
+        });
+    </script>
+</body>
+</html>
+

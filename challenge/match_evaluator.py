@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, date
 from typing import Any, Dict, List, Tuple, Optional
 from difflib import SequenceMatcher
 import jellyfish
@@ -105,7 +105,8 @@ class EnhancedTenantMatchEvaluator:
                     # Try to parse date string in various formats
                     for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%d-%m-%Y']:
                         try:
-                            normalized['dob'] = datetime.strptime(normalized['dob'], fmt)
+                            parsed_date = datetime.strptime(normalized['dob'], fmt)
+                            normalized['dob'] = parsed_date.strftime('%Y-%m-%d')  # Convert back to string
                             break
                         except ValueError:
                             continue
@@ -113,12 +114,18 @@ class EnhancedTenantMatchEvaluator:
                         normalized['dob'] = None
                 except Exception:
                     normalized['dob'] = None
+            elif isinstance(normalized['dob'], (datetime, date)):
+                normalized['dob'] = normalized['dob'].strftime('%Y-%m-%d')  # Convert datetime/date to string
 
         # Extract age if DOB is present
-        if 'dob' in normalized and normalized['dob'] and isinstance(normalized['dob'], datetime):
-            today = datetime.now()
-            normalized['age'] = today.year - normalized['dob'].year - (
-                    (today.month, today.day) < (normalized['dob'].month, normalized['dob'].day))
+        if 'dob' in normalized and normalized['dob']:
+            try:
+                dob_date = datetime.strptime(normalized['dob'], '%Y-%m-%d')
+                today = datetime.now()
+                normalized['age'] = today.year - dob_date.year - (
+                        (today.month, today.day) < (dob_date.month, dob_date.day))
+            except Exception:
+                normalized['age'] = None
 
         return normalized
 
@@ -461,10 +468,6 @@ class EnhancedTenantMatchEvaluator:
         result['match_label'] = match_category['label']
         result['match_reasons'] = match_reasons
         result['mismatch_reasons'] = mismatch_reasons
-
-        # Add date string handling before returning the result
-        if 'dob' in result and isinstance(result['dob'], datetime):
-            result['dob'] = result['dob'].strftime('%Y-%m-%d')
 
         return result
 

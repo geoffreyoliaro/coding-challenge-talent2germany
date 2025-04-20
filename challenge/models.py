@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields, validate
+from datetime import datetime, date
 
 
 class DateField(fields.Date):
@@ -8,6 +9,8 @@ class DateField(fields.Date):
             return None
         if isinstance(value, str):
             return value
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
         return super()._serialize(value, attr, obj, **kwargs)
 
 

@@ -1,10 +1,6 @@
 import json
 import pytest
-from datetime import datetime, date
-from flask import Flask
-from challenge.app import app
-from challenge.match_evaluator import EnhancedTenantMatchEvaluator
-from challenge.models import EvaluationRequestSchema, EvaluationResponseSchema
+from app import app
 
 
 @pytest.fixture
